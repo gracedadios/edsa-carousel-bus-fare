@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta name="theme-color" content="#063b72">
+        <title>EDSA Busway Fare Calculator — Northbound</title>
+        <style>
+            :root {
+                --navy: #073b70;
+                --blue: #0875c9;
+                --pale: #e8f5fa;
+                --ink: #172536;
+                --muted: #637184;
+                --line: #d9e2eb;
+                --bg: #f4f7fb;
+                --white: #fff;
+                --green: #087443
+            }
+
+            * {
+                box-sizing: border-box
+            }
+
+            body {
+                margin: 0;
+                background: var(--bg);
+                font-family: Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+                color: var(--ink)
+            }
+
+            header {
+                background: linear-gradient(120deg,#052e59,#0879bd);
+                color: white;
+                padding: 24px 18px 30px
+            }
+
+            header .wrap,main,.foot {
+                max-width: 960px;
+                margin: auto
+            }
+
+            .brand {
+                font-size: 12px;
+                letter-spacing: .1em;
+                text-transform: uppercase;
+                opacity: .86;
+                font-weight: 700
+            }
+
+            .hero {
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 18px
+            }
+
+            .hero h1 {
+                font-size: clamp(26px,5vw,38px);
+                line-height: 1.12;
+                margin: 10px 0
+            }
+
+            .hero p {
+                margin: 0;
+                color: #d7eafa;
+                max-width: 560px;
+                line-height: 1.5
+            }
+
+            .route-pill {
+                border: 1px solid #ffffff66;
+                border-radius: 999px;
+                padding: 8px 12px;
+                font-size: 12px;
+                white-space: nowrap;
+                margin-top: 10px
+            }
+
+            main {
+                padding: 0 16px 30px;
+                margin-top: -14px
+            }
+
+            .panel {
+                background: white;
+                border: 1px solid var(--line);
+                border-radius: 18px;
+                padding: 22px;
+                box-shadow: 0 10px 30px #16334e0b;
+                margin-bottom: 16px
+            }
+
+            .panel h2 {
+                font-size: 18px;
+                margin: 0 0 5px
+            }
+
+            .sub {
+                font-size: 13px;
+                color: var(--muted);
+                margin: 0 0 18px
+            }
+
+            .fields {
+                display: grid;
+                grid-template-columns: 1fr 48px 1fr;
+                gap: 12px;
+                align-items: end
+            }
+
+            .field label {
+                display: block;
+                font-size: 12px;
+                letter-spacing: .08em;
+                font-weight: 800;
+                color: #46586d;
+                margin-bottom: 8px
+            }
+
+            .field select,.field input {
+                width: 100%;
+                border: 1px solid #cbd6e2;
+                border-radius: 10px;
+                background: white;
+                padding: 13px 12px;
+                font: inherit;
+                color: var(--ink);
+                min-height: 48px
+            }
+
+            .swap {
+                height: 48px;
+                border: 1px solid var(--line);
+                background: #f4f8fb;
+                border-radius: 10px;
+                font-size: 20px;
+                cursor: pointer
+            }
+
+            .primary,.secondary {
+                border: 0;
+                border-radius: 10px;
+                padding: 13px 18px;
+                font: inherit;
+                font-weight: 800;
+                cursor: pointer
+            }
+
+            .primary {
+                background: var(--blue);
+                color: white;
+                width: 100%;
+                margin-top: 16px
+            }
+
+            .primary:hover {
+                background: #0564ad
+            }
+
+            .secondary {
+                background: #eaf2fa;
+                color: var(--navy)
+            }
+
+            .result {
+                display: none;
+                margin-top: 18px;
+                border: 1px solid #c9e7d8;
+                background: #f5fcf8;
+                border-radius: 14px;
+                padding: 18px
+            }
+
+            .result.show {
+                display: block
+            }
+
+            .route {
+                font-size: 14px;
+                color: var(--muted);
+                margin-bottom: 12px
+            }
+
+            .fares {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px
+            }
+
+            .fare {
+                background: white;
+                border: 1px solid #dbe8e0;
+                border-radius: 12px;
+                padding: 16px
+            }
+
+            .fare .label {
+                font-size: 12px;
+                color: var(--muted);
+                font-weight: 700
+            }
+
+            .fare .amount {
+                font-size: clamp(28px,6vw,36px);
+                font-weight: 850;
+                letter-spacing: -.04em;
+                margin: 5px 0;
+                color: #123e2d
+            }
+
+            .fare.discount .amount {
+                color: var(--green)
+            }
+
+            .note {
+                font-size: 12px;
+                color: var(--muted);
+                line-height: 1.5;
+                margin: 14px 0 0
+            }
+
+            .status {
+                font-size: 12px;
+                color: var(--muted);
+                margin-top: 10px
+            }
+
+            .tiny {
+                font-size: 12px;
+                color: var(--muted);
+                line-height: 1.5
+            }
+
+            .footer {
+                font-size: 12px;
+                color: var(--muted);
+                line-height: 1.6;
+                padding: 0 4px 24px
+            }
+
+            .footer a {
+                color: var(--blue)
+            }
+
+            .toast {
+                display: none;
+                padding: 10px 12px;
+                border-radius: 8px;
+                background: #edf8f1;
+                color: #17603c;
+                font-size: 13px;
+                margin-top: 10px
+            }
+
+            .toast.show {
+                display: block
+            }
+
+            .hidden {
+                display: none!important
+            }
+
+            @media(max-width: 600px) {
+                header {
+                    padding:20px 16px 28px
+                }
+
+                .hero {
+                    display: block
+                }
+
+                .route-pill {
+                    display: inline-block
+                }
+
+                .panel {
+                    padding: 17px;
+                    border-radius: 14px
+                }
+
+                .fields {
+                    grid-template-columns: 1fr 42px 1fr;
+                    gap: 7px
+                }
+
+                .field select {
+                    padding: 11px 8px;
+                    font-size: 14px
+                }
+
+                .fares {
+                    grid-template-columns: 1fr 1fr;
+                    gap: 8px
+                }
+
+                .fare {
+                    padding: 12px 10px
+                }
+
+                .swap {
+                    font-size: 16px
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <div class="wrap">
+                <div class="brand">Metro Manila · Fare information</div>
+                <div class="hero">
+                    <div>
+                        <h1>
+                            EDSA Busway<br>Fare Calculator
+                        </h1>
+                        <p>Check the northbound fare between stations using the fare matrix effective September 28, 2026.</p>
+                    </div>
+                    <div class="route-pill">EDSA CAROUSEL ROUTE</div>
+                </div>
+            </div>
+        </header>
+        <main>
+            <section class="panel">
+                <h2>Calculate your fare</h2>
+                <p class="sub">Choose your boarding and destination stations.</p>
+                <div class="fields">
+                    <div class="field">
+                        <label for="from">FROM</label>
+                        <select id="from"></select>
+                    </div>
+                    <button class="swap" id="swap" aria-label="Swap stations" title="Swap stations">⇄</button>
+                    <div class="field">
+                        <label for="to">TO</label>
+                        <select id="to"></select>
+                    </div>
+                </div>
+                <button class="primary" id="submit">SHOW FARE</button>
+                <div class="result" id="result" aria-live="polite">
+                    <div class="route" id="routeText"></div>
+                    <div class="fares">
+                        <div class="fare">
+                            <div class="label">REGULAR FARE</div>
+                            <div class="amount" id="regular">₱0.00</div>
+                            <div class="tiny">Standard passenger</div>
+                        </div>
+                        <div class="fare discount">
+                            <div class="label">DISCOUNTED FARE</div>
+                            <div class="amount" id="discount">₱0.00</div>
+                            <div class="tiny">Student / Senior Citizen / PWD</div>
+                        </div>
+                    </div>
+                    <p class="note">Fares are displayed from the fare database: white cells in the source matrix are regular fares, and blue cells are discounted fares. No additional rounding is applied to saved fare values.</p>
+                </div>
+                <div class="status" id="status">Fare matrix: September 28, 2026 · Philippine pesos (₱)</div>
+            </section>
+            <div class="footer">
+                Fare information is provided as a convenience and is not an official LTFRB service. Always follow posted fare information and official advisories.
+                .
+            </div>
+        </main>
+        <script>
+            const INITIAL = {
+                "stations": ["PITX", "City Of Dreams", "DFA", "MOA", "Roxas Boulevard", "Taft Avenue", "Ayala", "Buendia", "Guadalupe", "Ortigas", "Santolan", "Main Avenue", "Nepa Q. Mart", "Kamuning", "Quezon Avenue", "Philam QC", "North Avenue", "SM North EDSA", "Fernando Poe Jr", "Kaingin", "Balintawak", "Bagong Barrio", "Monumento"],
+                "regularTriangle": [[18.0, 18.0, 18.0, 18.0, 19.25, 29.75, 32.25, 38.0, 45.25, 52.75, 54.75, 60.25, 62.75, 65.0, 67.5, 69.0, 71.0, 74.25, 76.75, 79.0, 81.0, 85.0], [18.0, 18.0, 18.0, 18.0, 25.5, 28.0, 33.75, 41.0, 48.5, 50.5, 56.0, 58.5, 60.75, 63.25, 64.75, 66.75, 70.0, 72.5, 74.75, 76.75, 80.5], [18.0, 18.0, 18.0, 23.0, 25.5, 31.5, 38.75, 46.25, 48.25, 53.5, 56.25, 58.5, 60.75, 62.25, 64.25, 67.5, 70.25, 72.25, 74.5, 78.25], [18.0, 18.0, 18.75, 21.5, 27.25, 34.5, 42.0, 44.0, 49.5, 52.0, 54.25, 56.75, 58.0, 60.25, 63.5, 66.0, 68.25, 70.25, 74.0], [18.0, 18.0, 18.75, 24.5, 31.75, 39.25, 41.25, 46.75, 49.25, 51.5, 54.0, 55.25, 57.5, 60.75, 63.25, 65.5, 67.5, 71.25], [18.0, 18.0, 18.0, 29.25, 36.75, 38.75, 44.0, 46.75, 49.0, 51.25, 52.75, 54.75, 58.0, 60.75, 62.75, 65.0, 68.75], [18.0, 18.0, 18.75, 26.25, 28.25, 33.75, 36.25, 38.5, 41.0, 42.25, 44.25, 47.5, 50.25, 52.5, 54.5, 58.25], [18.0, 18.0, 23.75, 25.75, 31.0, 33.75, 36.0, 38.25, 39.75, 41.75, 45.0, 47.75, 49.75, 52.0, 55.75], [18.0, 18.0, 19.75, 25.25, 27.75, 30.0, 32.5, 34.0, 36.0, 39.25, 41.75, 44.0, 46.0, 50.0], [18.0, 18.0, 18.0, 20.5, 22.75, 25.25, 26.75, 28.75, 32.0, 34.5, 36.75, 39.0, 42.75], [18.0, 18.0, 18.0, 18.0, 18.0, 19.25, 21.25, 24.5, 27.0, 29.25, 31.5, 35.25], [18.0, 18.0, 18.0, 18.0, 18.0, 19.25, 22.5, 25.0, 27.25, 29.25, 33.25], [18.0, 18.0, 18.0, 18.0, 18.0, 18.0, 19.75, 21.75, 24.0, 27.75], [18.0, 18.0, 18.0, 18.0, 18.0, 18.0, 19.25, 21.5, 25.25], [18.0, 18.0, 18.0, 18.0, 18.0, 18.0, 19.25, 23.0], [18.0, 18.0, 18.0, 18.0, 18.0, 18.0, 20.5], [18.0, 18.0, 18.0, 18.0, 18.0, 19.0], [18.0, 18.0, 18.0, 18.0, 18.0], [18.0, 18.0, 18.0, 18.0], [18.0, 18.0, 18.0], [18.0, 18.0], [18.0], []],
+                "discountTriangle": [[14.5, 14.5, 14.5, 14.5, 15.5, 23.75, 25.75, 30.5, 36.25, 42.25, 43.75, 48.25, 50.25, 52.0, 54.0, 55.0, 56.75, 59.25, 61.5, 63.0, 64.75, 67.75], [14.5, 14.5, 14.5, 14.5, 20.25, 22.25, 27.0, 32.75, 38.75, 40.5, 44.75, 46.75, 48.5, 50.5, 51.75, 53.25, 55.75, 58.0, 59.75, 61.5, 64.5], [14.5, 14.5, 14.5, 18.5, 20.5, 25.25, 31.0, 37.0, 38.5, 42.75, 44.75, 46.75, 48.5, 49.75, 51.25, 54.0, 56.0, 57.75, 59.5, 62.5], [14.5, 14.5, 15.0, 17.25, 21.75, 27.5, 33.5, 35.25, 39.5, 41.5, 43.25, 45.25, 46.5, 48.0, 50.75, 52.75, 54.5, 56.25, 59.25], [14.5, 14.5, 15.0, 19.75, 25.5, 31.5, 33.0, 37.25, 39.25, 41.25, 43.0, 44.25, 45.75, 48.5, 50.5, 52.25, 54.0, 57.0], [14.5, 14.5, 14.5, 23.25, 29.25, 31.0, 35.25, 37.25, 39.0, 41.0, 42.25, 43.75, 46.5, 48.5, 50.25, 52.0, 55.0], [14.5, 14.5, 15.0, 21.0, 22.5, 27.0, 29.0, 30.75, 32.75, 33.75, 35.5, 38.0, 40.25, 42.0, 43.5, 46.5], [14.5, 14.5, 19.0, 20.5, 24.75, 27.0, 28.75, 30.75, 31.75, 33.5, 36.0, 38.0, 39.75, 41.5, 44.5], [14.5, 14.5, 16.0, 20.25, 22.25, 24.0, 26.0, 27.0, 28.75, 31.25, 33.5, 35.25, 36.75, 39.75], [14.5, 14.5, 14.5, 16.5, 18.25, 20.25, 21.25, 23.0, 25.5, 27.75, 29.5, 31.0, 34.0], [14.5, 14.5, 14.5, 14.5, 14.5, 15.25, 17.0, 19.5, 21.75, 23.5, 25.0, 28.0], [14.5, 14.5, 14.5, 14.5, 14.5, 15.25, 18.0, 20.0, 21.75, 23.5, 26.5], [14.5, 14.5, 14.5, 14.5, 14.5, 14.5, 15.75, 17.5, 19.25, 22.25], [14.5, 14.5, 14.5, 14.5, 14.5, 14.5, 15.5, 17.0, 20.25], [14.5, 14.5, 14.5, 14.5, 14.5, 14.5, 15.25, 18.25], [14.5, 14.5, 14.5, 14.5, 14.5, 14.5, 16.5], [14.5, 14.5, 14.5, 14.5, 14.5, 15.25], [14.5, 14.5, 14.5, 14.5, 14.5], [14.5, 14.5, 14.5, 14.5], [14.5, 14.5, 14.5], [14.5, 14.5], [14.5], []]
+            };
+            const KEY = 'edsa-northbound-fares-v4';
+            const $ = id => document.getElementById(id);
+            let db;
+            function pairKey(a, b) {
+                return [a, b].sort( (x, y) => x - y).join('-')
+            }
+            function initDb() {
+                const fares = {};
+                INITIAL.regularTriangle.forEach( (row, i) => row.forEach( (regular, k) => {
+                    const j = i + k + 1;
+                    fares[pairKey(i, j)] = {
+                        regular: Number(regular),
+                        discounted: Number(INITIAL.discountTriangle[i][k])
+                    }
+                }
+                ));
+                return {
+                    stations: INITIAL.stations.slice(),
+                    fares
+                }
+            }
+            function loadDb() {
+                // Use admin-saved values if available in this same browser and website origin;
+                // otherwise use the values embedded in this public file.
+                try {
+                    const raw = localStorage.getItem(KEY);
+                    if (raw) {
+                        const saved = JSON.parse(raw);
+                        const sameStations = Array.isArray(saved.stations) && saved.stations.join('¦') === INITIAL.stations.join('¦');
+                        if (sameStations && saved.fares && typeof saved.fares === 'object')
+                            return saved;
+                    }
+                } catch (e) {}
+                return initDb();
+            }
+            function money(n) {
+                return '₱' + Number(n).toFixed(2)
+            }
+            function fillSelect(el, selected=0) {
+                el.innerHTML = '';
+                db.stations.forEach( (station, i) => {
+                    const option = document.createElement('option');
+                    option.value = i;
+                    option.textContent = station;
+                    el.appendChild(option)
+                }
+                );
+                el.value = selected
+            }
+            function calculate() {
+                const a = Number($('from').value)
+                  , b = Number($('to').value);
+                if (a === b) {
+                    alert('Please choose two different stations.');
+                    return
+                }
+                const f = db.fares[pairKey(a, b)];
+                if (!f || !Number.isFinite(Number(f.regular)) || !Number.isFinite(Number(f.discounted))) {
+                    alert('Fare information is not available for this station pair.');
+                    return
+                }
+                $('routeText').textContent = db.stations[a] + ' → ' + db.stations[b];
+                $('regular').textContent = money(f.regular);
+                $('discount').textContent = money(f.discounted);
+                $('result').classList.add('show');
+            }
+            $('submit').addEventListener('click', calculate);
+            $('swap').addEventListener('click', () => {
+                const a = $('from').value;
+                $('from').value = $('to').value;
+                $('to').value = a;
+                $('result').classList.remove('show')
+            }
+            );
+            $('from').addEventListener('change', () => $('result').classList.remove('show'));
+            $('to').addEventListener('change', () => $('result').classList.remove('show'));
+            db = loadDb();
+            fillSelect($('from'), 0);
+            fillSelect($('to'), 6);
+        </script>
+    </body>
+</html>
